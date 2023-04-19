@@ -70,7 +70,7 @@ require([
                             type: "color",
                             field: "mag",
                             stops: [
-                                { value: 0, color: "green" },
+                                { value: 1, color: "green" },
                                 { value: 5, color: "yellow" },
                                 { value: 10, color: "red" }
                             ]
@@ -97,7 +97,7 @@ require([
                 field: "mag",
                 colorMixMode: "tint",
                 stops: [
-                    { value: 0, color: "green" },
+                    { value: 1, color: "green" },
                     { value: 5, color: "yellow" },
                     { value: 10, color: "red" }
                 ],
