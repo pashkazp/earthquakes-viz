@@ -2,7 +2,7 @@
 
 This application shows the earthquakes in 2019 with an exaggerated depth. The earthquake data used in this app comes from [USGS](https://earthquake.usgs.gov/earthquakes/search/). The app is created with [Esri's ArcGIS API for JavaScript](https://developers.arcgis.com/javascript).
 
-[![app-screenshot](./app-screenshot.png)](https://ralucanicola.github.io/earthquakes-viz/)
+[![app-screenshot](./app-screenshot.png)](https://pashkazp.github.io/earthquakes-viz/)
 
 ## How to re-create this visualization with your own data
 
