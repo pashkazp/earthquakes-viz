@@ -46,76 +46,11 @@ require([
     }
   });
 
-  const map = new Map({
-    ground: {
-      opacity: 0,
-      navigationConstraint: "none"
-    },
-    basemap: new Basemap({
-      baseLayers: [countryBorders, plateTectonicBorders]
-    })
-  });
-
-  // the view associated with the map has a transparent background
-  // so that we can apply a CSS shadow filter for the glow
-  const view = new SceneView({
-    container: "view-container",
-    qualityProfile: "high",
-    map: map,
-    alphaCompositingEnabled: true,
-    environment: {
-      background: {
-        type: "color",
-        color: [0, 0, 0, 0]
-      },
-      starsEnabled: false,
-      atmosphereEnabled: false
-    },
-    ui: {
-      components: []
-    },
-    highlightOptions: {
-      color: "cyan"
-    },
-    padding: {
-      bottom: 200
-    },
-    popup: {
-      collapseEnabled: false,
-      dockEnabled: false,
-      dockOptions: {
-        breakpoint: false
-      }
-    },
-    camera: {
-      position: [
-        -105.61273180,
-        3.20596275,
-        13086004.69753
-      ],
-      heading: 0.24,
-      tilt: 0.16
-    }
-  });
-
   const exaggeratedElevation = {
     mode: "absolute-height",
-    featureExpressionInfo: {
-      expression: "-$feature.depth * 6"
-    },
-    unit: "kilometers"
+    offset: 100000
   };
 
-  const realElevation = {
-    mode: "absolute-height",
-    featureExpressionInfo: {
-      expression: "-$feature.depth"
-    },
-    unit: "kilometers"
-  };
-  let exaggerated = true;
-
-  // define the earthquakes layer
   const earthquakeLayer = new CSVLayer({
     url: "./earthquake_data.csv",
     elevationInfo: exaggeratedElevation,
@@ -171,124 +106,101 @@ require([
                 },
             }
         ]
+    }
+  });
+const map = new Map({
+    ground: {
+      opacity: 0,
+      navigationConstraint: "none"
     },
-    popupTemplate: {
-      content: "Magnitude {mag} {type} hit {place} on {time} at a depth of {depth} km.",
-      title: "Earthquake info",
-      fieldInfos: [
-        {
-          fieldName: "time",
-          format: {
-            dateFormat: "short-date-long-time-24"
-          }
-        },
-        {
-          fieldName: "mag",
-          format: {
-            places: 1,
-            digitSeparator: true
-          }
-        },
-        {
-          fieldName: "depth",
-          format: {
-            places: 1,
-            digitSeparator: true
-          }
-        }
-      ]
+    basemap: new Basemap({
+      baseLayers: [countryBorders, plateTectonicBorders]
+    }),
+    layers: [earthquakeLayer]
+  });
+
+  // the view associated with the map has a transparent background
+  // so that we can apply a CSS shadow filter for the glow
+  const view = new SceneView({
+    container: "view-container",
+    qualityProfile: "high",
+    map: map,
+    alphaCompositingEnabled: true,
+    environment: {
+      background: {
+        type: "color",
+        color: [0, 0, 0, 0]
+      },
+      starsEnabled: false,
+      atmosphereEnabled: false
+    },
+    ui: {
+      components: []
+    },
+    highlightOptions: {
+      color: "cyan"
+    },
+    padding: {
+      bottom: 200
+    },
+    popup: {
+      collapseEnabled: false,
+      dockEnabled: false,
+      dockOptions: {
+        breakpoint: false
+      }
+    },
+    camera: {
+      position: [
+        -105.61273180,
+        3.20596275,
+        13086004.69753
+      ],
+      heading: 0.24,
+      tilt: 0.16
     }
   });
 
-  map.add(earthquakeLayer);
+  // The watchUtils.when function ensures that the function passed as the second argument is executed when the
+  // condition passed as the first argument is met. In this case, the function will execute when the view is stationary
+  watchUtils.when(view, "stationary", function() {
+    const options = {
+      size: 20,
+      color: [255, 255, 255, 0.2],
+      blendMode: "screen"
+    };
 
-  let earthquakeLayerView = null;
-  let highlightHandler = null;
+    const blurIntensity = 3;
+    const brightness = 0.5;
+    const textureSize = 2048;
+    const texture = document.createElement("canvas");
+    const context = texture.getContext("2d");
+    texture.width = textureSize;
+    texture.height = textureSize;
+    context.fillStyle = "black";
+    context.fillRect(0, 0, textureSize, textureSize);
 
-  view.whenLayerView(earthquakeLayer).then(function(lyrView) {
-    earthquakeLayerView = lyrView;
-  });
-
-  function formatDate(date) {
-    const fDate = new Date(date);
-    const year = fDate.getFullYear();
-    const month = new Intl.DateTimeFormat("en-US", { month: "long" }).format(fDate);
-    const day = fDate.getDate();
-    const hours = fDate.getHours();
-    const minutes = fDate.getMinutes();
-    const prefix = minutes < 10 ? "0" : "";
-    return `${day} ${month} ${year}, at ${hours}:${prefix}${minutes}`;
-  }
-
-  let zooming = false;
-  earthquakeLayer
-    .queryFeatures({
-      where: "mag > 7"
-    })
-    .then(function(result) {
-      const features = result.features;
-      const list = document.getElementById("earthquake-list");
-      features.forEach(function(earthquake) {
-        const attr = earthquake.attributes;
-        const content = document.createElement("div");
-        content.innerHTML = `
-          <div>
-            <h3>${attr.place}</h3>
-            <span class="date-time"><i>${formatDate(attr.time)}</i></span>
-            </br>
-            Magnitude ${attr.mag} | Depth ${attr.depth} km
-          </div>
-        `;
-        const goToButton = document.createElement("button");
-        goToButton.innerText = "Zoom to earthquake";
-        goToButton.addEventListener("click", function() {
-          zooming = true;
-          view.goTo({ target: earthquake, zoom: 4 }, { speedFactor: 0.5 });
-          if (earthquakeLayerView) {
-            if (highlightHandler) {
-              highlightHandler.remove();
-            }
-            highlightHandler = earthquakeLayerView.highlight(earthquake);
-          }
-        });
-        content.appendChild(goToButton);
-        list.appendChild(content);
-      });
-    })
-    .catch(console.error);
-
-  document.getElementById("toggle-exaggeration").addEventListener("click", function() {
-    if (exaggerated) {
-      earthquakeLayer.elevationInfo = realElevation;
-      exaggerated = false;
-    } else {
-      earthquakeLayer.elevationInfo = exaggeratedElevation;
-      exaggerated = true;
+    // Use the normal distribution function to generate a random halo
+    for (let i = 0; i < options.size; i++) {
+      const x = textureSize * 0.5 + 3 * textureSize * (Math.random() - 0.5);
+      const y = textureSize * 0.5 + 3 * textureSize * (Math.random() - 0.5);
+      const size = 2 * options.size * Math.random();
+      const intensity = Math.random();
+      context.globalAlpha = options.color[3] * intensity;
+      context.beginPath();
+      context.arc(x, y, size, 0, 2 * Math.PI, false);
+      context.fillStyle = `rgba(${options.color[0]}, ${options.color[1]}, ${options.color[2]}, 1)`;
+      context.fill();
     }
-  });
 
-  function rotate() {
-    if (!view.interacting && !zooming) {
-      const camera = view.camera.clone();
-      camera.position.longitude -= 0.1;
-      view.camera = camera;
-      requestAnimationFrame(rotate);
-    }
-  }
-
-  view.when(function() {
-    view.constraints.clipDistance.far = 40000000;
-    watchUtils.whenFalseOnce(view, "updating", function() {
-      rotate();
-    });
-  });
-
-  let legendVisible = true;
-  const legendController = document.getElementById("legend-control");
-  const legendContainer = document.getElementById("legend");
-  legendController.addEventListener("click", function() {
-    legendContainer.style.display = legendVisible ? "none" : "block";
-    legendController.innerHTML = legendVisible ? "Show explanation" : "Hide explanation";
-    legendVisible = !legendVisible;
+    view.environment.lighting.shadowColor.value = {
+      r: options.color[0],
+      g: options.color[1],
+      b: options.color[2],
+      a: options.color[3]
+    };
+    view.environment.lighting.shadowIntensity.value = blurIntensity;
+    view.environment.lighting.shadowBlurIntensity.value = brightness;
+    view.environment.lighting.shadowTexture.value = texture;
   });
 });
