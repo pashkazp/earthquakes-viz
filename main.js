@@ -70,7 +70,7 @@ require([
                             type: "color",
                             field: "mag",
                             stops: [
-                                { value: 1, color: "green" },
+                                { value: 0, color: "green" },
                                 { value: 5, color: "yellow" },
                                 { value: 10, color: "red" }
                             ]
@@ -88,8 +88,8 @@ require([
                 field: "mag",
                 axis: "all",
                 stops: [
-                    { value: 1, size: 10000 },
-                    { value: 10, size: 300000 }
+                    { value: 0, size: 10000 },
+                    { value: 10, size: 250000 }
                 ]
             },
             {
@@ -97,7 +97,7 @@ require([
                 field: "mag",
                 colorMixMode: "tint",
                 stops: [
-                    { value: 1, color: "green" },
+                    { value: 0, color: "green" },
                     { value: 5, color: "yellow" },
                     { value: 10, color: "red" }
                 ],
