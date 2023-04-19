@@ -121,44 +121,56 @@ require([
     elevationInfo: exaggeratedElevation,
     screenSizePerspectiveEnabled: false,
     renderer: {
-      type: "simple",
-      symbol: {
-        type: "point-3d",
-        symbolLayers: [
-          {
-            type: "object",
-            resource: {
-              primitive: "sphere"
-            },
-            material: { color: [255, 250, 239, 0.8] },
-            depth: 10000,
-            height: 10000,
-            width: 10000
-          }
-        ]
-      },
-      visualVariables: [
-        {
-          type: "size",
-          field: "mag",
-          axis: "all",
-          stops: [
-            { value: 5.5, size: 70000, label: "<15%" },
-            { value: 7, size: 250000, label: "25%" }
-          ]
+        type: "simple",
+        symbol: {
+            type: "point-3d",
+            symbolLayers: [
+                {
+                    type: "object",
+                    resource: {
+                        primitive: "sphere"
+                    },
+                    material: {
+                        color: {
+                            type: "color",
+                            field: "mag",
+                            stops: [
+                                { value: 0, color: "green" },
+                                { value: 5, color: "yellow" },
+                                { value: 10, color: "red" }
+                            ]
+                        },
+                    },
+                    depth: 10000,
+                    height: 10000,
+                    width: 10000
+                }
+            ]
         },
-        {
-          type: "color",
-          field: "mag",
-          legendOptions: {
-            title: "Magnitude"
-          },
-          stops: [
-            { value: 6, color: [254, 240, 217], label: "4.5 - 6" },
-            { value: 7, color: [179, 0, 0], label: ">7" }
-          ]
-        }
-      ]
+        visualVariables: [
+            {
+                type: "size",
+                field: "mag",
+                axis: "all",
+                stops: [
+                    { value: 0, size: 10000 },
+                    { value: 10, size: 250000 }
+                ]
+            },
+            {
+                type: "color",
+                field: "mag",
+                colorMixMode: "tint",
+                stops: [
+                    { value: 0, color: "green" },
+                    { value: 5, color: "yellow" },
+                    { value: 10, color: "red" }
+                ],
+                legendOptions: {
+                    title: "Magnitude"
+                },
+            }
+        ]
     },
     popupTemplate: {
       content: "Magnitude {mag} {type} hit {place} on {time} at a depth of {depth} km.",
