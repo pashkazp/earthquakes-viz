@@ -1,7 +1,7 @@
 // Чекаємо, поки DOM буде повністю завантажений
 document.addEventListener("DOMContentLoaded", function() {
     // Чекаємо, поки ArcGIS API буде завантажено
-    require(["esri/Map", "esri/views/SceneView", "esri/layers/GraphicsLayer", "esri/Graphic", "esri/geometry/Point"], 
+    require(["esri/Map", "esri/views/SceneView", "esri/layers/GraphicsLayer", "esri/Graphic", "esri/geometry/Point"],
     function(Map, SceneView, GraphicsLayer, Graphic, Point) {
         // Перевіряємо, чи PapaParse завантажено
         if (typeof Papa === 'undefined') {
@@ -212,7 +212,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Функція для зміни basemap
         function changeBasemap(basemap) {
             map.basemap = basemap;
-            map.ground.opacity = 0.3;  // Встановлюємо прозорість ground на 0.3
+            map.ground.opacity = 0.3;  // Встановлюємо прозорі��ть ground на 0.3
         }
 
         // Додаємо обробник події для випадаючого списку
@@ -222,5 +222,36 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Додайте цей код після створення view, щоб встановити початкове значення випадаючого списку
         document.getElementById('basemapSelect').value = "satellite";
+
+        // Створення легенди
+        const legend = new Legend({
+            view: view,
+            layerInfos: [{
+                layer: earthquakeLayer,
+                title: "Землетруси"
+            }]
+        });
+
+        // Додавання легенди до виду
+        view.ui.add(legend, "top-right");
+
+        // Налаштування символів для легенди
+        const legendSymbols = [
+            { label: "Магнітуда < 3", symbol: { type: "simple-marker", style: "circle", color: [255, 255, 0, 1], size: "10px" } },
+            { label: "Магнітуда 3-5", symbol: { type: "simple-marker", style: "circle", color: [255, 165, 0, 1], size: "15px" } },
+            { label: "Магнітуда 5-7", symbol: { type: "simple-marker", style: "circle", color: [255, 69, 0, 1], size: "20px" } },
+            { label: "Магнітуда > 7", symbol: { type: "simple-marker", style: "circle", color: [255, 0, 0, 1], size: "25px" } }
+        ];
+
+        // Додавання символів до легенди
+        legendSymbols.forEach(item => {
+            const graphic = new Graphic({
+                symbol: item.symbol,
+                popupTemplate: {
+                    title: item.label
+                }
+            });
+            earthquakeLayer.add(graphic);
+        });
     });
 });
