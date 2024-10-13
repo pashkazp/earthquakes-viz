@@ -31,18 +31,17 @@ document.addEventListener("DOMContentLoaded", function() {
                 tilt: 0,
                 heading: 0
             },
-            constraints: {
-                snapToZoom: false
-            },
             environment: {
                 atmosphere: { 
-                    quality: 'high'
+                    quality: 'low'
                 },
                 lighting: {
                     type: "virtual",
                     date: null,  // Встановлюємо null для рівномірного освітлення
                     directShadowsEnabled: false
-                }
+                },
+                atmosphereEnabled: false,  // Додаємо цю змінну тут
+                starsEnabled: false  // Додаємо цю змінну тут
             },
             qualityProfile: "high",
             viewingMode: "global"
