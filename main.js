@@ -1,177 +1,207 @@
-require([
-    "esri/Map",
-    "esri/views/SceneView",
-    "esri/layers/CSVLayer",
-    "esri/layers/FeatureLayer",
-    "esri/Basemap",
-    "esri/core/watchUtils"
-], function(Map, SceneView, CSVLayer, FeatureLayer, Basemap, watchUtils) {
-    const countryBorders = new FeatureLayer({
-        url:
-            "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Countries_(Generalized)/FeatureServer/0",
-        renderer: {
-            type: "simple",
-            symbol: {
-                type: "polygon-3d",
-                symbolLayers: [
-                    {
-                        type: "fill",
-                        outline: {
-                            color: [255, 255, 255, 0.8],
-                            size: 1
-                        }
-                    }
-                ]
-            }
+// Чекаємо, поки DOM буде повністю завантажений
+document.addEventListener("DOMContentLoaded", function() {
+    // Чекаємо, поки ArcGIS API буде завантажено
+    require(["esri/Map", "esri/views/SceneView", "esri/layers/GraphicsLayer", "esri/Graphic", "esri/geometry/Point"], 
+    function(Map, SceneView, GraphicsLayer, Graphic, Point) {
+        // Перевіряємо, чи PapaParse завантажено
+        if (typeof Papa === 'undefined') {
+            console.error("PapaParse is not loaded. Make sure it's included in your HTML file.");
+            return;
         }
-    });
 
-    const plateTectonicBorders = new FeatureLayer({
-        url: "https://services2.arcgis.com/cFEFS0EWrhfDeVw9/arcgis/rest/services/plate_tectonics_boundaries/FeatureServer",
-        elevationInfo: {
-            mode: "on-the-ground"
-        },
-        renderer: {
-            type: "simple",
-            symbol: {
-                type: "line-3d",
-                symbolLayers: [
-                    {
-                        type: "line",
-                        material: { color: [255, 133, 125, 0.7] },
-                        size: 3
-                    }
-                ]
-            }
-        }
-    });
+        console.log("PapaParse version:", Papa.version);
 
-    const earthquakeLayer = new CSVLayer({
-        url: "./earthquake_data.csv",
-        elevationInfo: {
-            mode: "absolute-height", // Використовуємо абсолютну висоту для відображення глибини
-            featureExpressionInfo: {
-                expression: "-$feature.depth" // Глибина представлена як від'ємне значення, щоб точка була нижче поверхні
+        // Створення карти та SceneView
+        const map = new Map({
+            basemap: "satellite",
+            ground: {
+                opacity: 0.5 // Зменшено прозорість поверхні
             }
-        },
-        screenSizePerspectiveEnabled: false,
-        renderer: {
-            type: "simple",
-            symbol: {
-                type: "point-3d",
-                symbolLayers: [
-                    {
-                        type: "object",
-                        resource: {
-                            primitive: "sphere"
-                        },
-                        material: {
-                            color: {
-                                type: "color",
-                                field: "mag",
-                                stops: [
-                                    { value: 0, color: "green" },
-                                    { value: 5, color: "yellow" },
-                                    { value: 10, color: "red" }
-                                ]
-                            }
-                        },
-                        depth: 10000,
-                        height: 10000,
-                        width: 10000
-                    }
-                ]
-            },
-            visualVariables: [
-                {
-                    type: "size",
-                    field: "mag",
-                    axis: "all",
-                    stops: [
-                        { value: 0, size: 10000 },
-                        { value: 10, size: 250000 }
-                    ]
+        });
+
+        const view = new SceneView({
+            container: "view-container",
+            map: map,
+            camera: {
+                position: {
+                    latitude: 20,
+                    longitude: 0,
+                    z: 20000000
                 },
-                {
-                    type: "color",
-                    field: "mag",
-                    colorMixMode: "tint",
-                    stops: [
-                        { value: 0, color: "green" },
-                        { value: 5, color: "yellow" },
-                        { value: 10, color: "red" }
-                    ],
-                    legendOptions: {
-                        title: "Magnitude"
-                    }
-                }
-            ]
-        }
-    });
-
-    const map = new Map({
-        ground: {
-            opacity: 0,
-            navigationConstraint: "none"
-        },
-        basemap: new Basemap({
-            baseLayers: [countryBorders, plateTectonicBorders]
-        }),
-        layers: [earthquakeLayer]
-    });
-
-    // Ініціалізація SceneView
-    const view = new SceneView({
-        container: "view-container",
-        qualityProfile: "high",
-        map: map,
-        alphaCompositingEnabled: true,
-        environment: {
-            background: {
-                type: "color",
-                color: [0, 0, 0, 0]
+                tilt: 0,
+                heading: 0
             },
-            starsEnabled: false,
-            atmosphereEnabled: false
-        },
-        ui: {
-            components: []
-        },
-        highlightOptions: {
-            color: "cyan"
-        },
-        padding: {
-            bottom: 200
-        },
-        popup: {
-            collapseEnabled: false,
-            dockEnabled: false,
-            dockOptions: {
-                breakpoint: false
+            constraints: {
+                snapToZoom: false
+            },
+            environment: {
+                atmosphere: { 
+                    quality: 'high'
+                },
+                lighting: {
+                    type: "virtual",
+                    date: new Date(),
+                    directShadowsEnabled: false
+                }
+            },
+            qualityProfile: "high",
+            viewingMode: "global"
+        });
+
+        // Створення GraphicsLayer для відображення землетрусів
+        const earthquakeLayer = new GraphicsLayer();
+        map.add(earthquakeLayer);
+        console.log("Earthquake layer added to map");
+
+        // Функція для визначення кольору на основі магнітуди
+        function magnitudeColor(mag) {
+            if (mag < 3) return [255, 255, 0, 1];
+            if (mag < 5) return [255, 165, 0, 1];
+            if (mag < 7) return [255, 69, 0, 1];
+            return [255, 0, 0, 1];
+        }
+
+        const MAX_EARTHQUAKES = 1000; // Обмежте кількість землетрусів
+        let earthquakeCount = 0;
+
+        function addEarthquakeToLayer(row) {
+            if (earthquakeCount >= MAX_EARTHQUAKES) return;
+            
+            const lat = row.latitude;
+            const lon = row.longitude;
+            const depth = row.depth;
+            const magnitude = row.mag;
+
+            if (!lat || !lon || !depth || !magnitude) return;
+
+            const point = {
+                type: "point",
+                longitude: lon,
+                latitude: lat,
+                z: -depth * 1000 // Конвертуємо глибину в метри і робимо її від'ємною
+            };
+
+            const size = Math.max(50000, magnitude * 50000) / Math.sqrt(view.scale / 20000000);
+            const graphic = new Graphic({
+                geometry: point,
+                symbol: {
+                    type: "point-3d",
+                    symbolLayers: [{
+                        type: "object",
+                        width: size,
+                        height: size,
+                        depth: size,
+                        resource: { primitive: "sphere" },
+                        material: { color: magnitudeColor(magnitude) }
+                    }]
+                },
+                attributes: {
+                    magnitude: magnitude,
+                    depth: depth,
+                    location: `${lat}, ${lon}`
+                },
+                popupTemplate: {
+                    title: "Землетрус",
+                    content: "Магнітуда: {magnitude}<br>Глибина: {depth} км<br>Координати: {location}"
+                }
+            });
+
+            earthquakeLayer.add(graphic);
+            earthquakeCount++;
+        }
+
+        function createEarthquakeSymbol(magnitude, scale) {
+            const baseSize = 50000; // Базовий розмір у метрах
+            const size = Math.max(baseSize, magnitude * baseSize) / Math.sqrt(scale);
+            return {
+                type: "point-3d",
+                symbolLayers: [{
+                    type: "object",
+                    width: size,
+                    height: size,
+                    depth: size,
+                    resource: { primitive: "sphere" },
+                    material: { color: magnitudeColor(magnitude) }
+                }]
+            };
+        }
+
+        view.when(() => {
+            console.log("View loaded");
+            loadEarthquakeData();
+        }).catch((error) => {
+            console.error("Error loading view:", error);
+        });
+
+        function loadEarthquakeData() {
+            console.log("Starting to load earthquake data");
+            Papa.parse("earthquake_data.csv", {
+                download: true,
+                header: true,
+                dynamicTyping: true,
+                complete: function(results) {
+                    console.log("Parsed earthquakes:", results.data.length);
+                    results.data.forEach(addEarthquakeToLayer);
+                    console.log("Added earthquakes to layer:", earthquakeLayer.graphics.length);
+                    // Видалимо автоматичну зміну виду
+                    // if (earthquakeLayer.graphics.length > 0) {
+                    //     view.goTo(earthquakeLayer.graphics, { duration: 2000 }).catch((error) => {
+                    //         console.warn("goTo rejected:", error);
+                    //     });
+                    // }
+                },
+                error: function(error) {
+                    console.error("Error parsing CSV:", error);
+                }
+            });
+        }
+        
+        function updateEarthquakeSymbols(newScale) {
+            earthquakeLayer.graphics.forEach(graphic => {
+                const magnitude = graphic.attributes.magnitude;
+                const depth = graphic.attributes.depth;
+                const size = Math.max(50000, magnitude * 50000) / Math.sqrt(newScale / 20000000);
+                graphic.symbol = {
+                    type: "point-3d",
+                    symbolLayers: [{
+                        type: "object",
+                        width: size,
+                        height: size,
+                        depth: size,
+                        resource: { primitive: "sphere" },
+                        material: { color: magnitudeColor(magnitude) }
+                    }]
+                };
+            });
+        }
+
+        view.watch("scale", function(newValue) {
+            updateEarthquakeSymbols(newValue);
+        });
+
+        // Додаємо обробник події для кнопки зміни виду
+        document.getElementById('toggleView').addEventListener('click', function() {
+            if (view.camera.tilt === 0) {
+                view.goTo({
+                    tilt: 45,
+                    heading: 0,
+                    position: {
+                        latitude: 20,
+                        longitude: 0,
+                        z: 25000000
+                    }
+                }, { duration: 1000 });
+            } else {
+                view.goTo({
+                    tilt: 0,
+                    heading: 0,
+                    position: {
+                        latitude: 0,
+                        longitude: 0,
+                        z: 25000000
+                    }
+                }, { duration: 1000 });
             }
-        },
-        camera: {
-            position: [
-                -105.61273180,
-                3.20596275,
-                13086004.69753
-            ],
-            heading: 0.24,
-            tilt: 0.16
-        }
-    });
-
-    // Використання watchUtils для гарантії завершення завантаження шарів
-    watchUtils.when(view, "stationary", function() {
-        if (view.stationary) {
-            console.log("Карта завантажена і готова до використання");
-        }
-    });
-
-    // Додавання обробників подій для взаємодії користувача
-    view.whenLayerView(earthquakeLayer).then(function(layerView) {
-        watchUtils.whenFalse(layerView, "updating", function() {
-            console.log("Earthquake data завантажено і готово до використання");
         });
     });
 });

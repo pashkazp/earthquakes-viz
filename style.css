@@ -15,13 +15,22 @@ body {
 
 #view-container,
 #view-container canvas {
-  filter: drop-shadow(0 0 10px rgba(255, 243, 131, 0.5));
+  filter: none;
 }
 
 .title {
   position: absolute;
   top: 0;
   left: 10px;
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff, 0 0 20px #ff00de, 0 0 35px #ff00de, 0 0 40px #ff00de, 0 0 50px #ff00de, 0 0 75px #ff00de;
+  }
+  to {
+    text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff, 0 0 40px #ff00de, 0 0 70px #ff00de, 0 0 80px #ff00de, 0 0 100px #ff00de, 0 0 150px #ff00de;
+  }
 }
 
 #details {
@@ -36,19 +45,15 @@ body {
 }
 
 #details button {
-  background-color: transparent;
-  font-family: "Avenir Next W01", "Avenir Next W00", "Avenir Next", "Avenir", "Helvetica Neue", sans-serif;
-  font-size: 1em;
-  color: white;
-  padding: 0;
-  border: none;
-  border-bottom: 1px solid white;
-  border-radius: 0;
-  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 5px 10px;
+  border: 1px solid white;
 }
+
 #details button:hover {
   color: black;
   background-color: white;
+  transform: scale(1.05);
 }
 
 .big-circle,
@@ -83,9 +88,15 @@ ul {
 }
 
 a {
+  transition: all 0.3s ease;
   color: white;
   text-decoration: none;
   font-weight: bold;
+}
+
+a:hover {
+  color: #ff00de;
+  text-decoration: underline;
 }
 
 #earthquake-list {
@@ -99,6 +110,12 @@ a {
   padding: 0 1em 0.5em;
   margin: 0.3em 0;
   border-right: 1px solid rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+#earthquake-list > div:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.02);
 }
 
 #earthquake-list .date-time,
@@ -108,4 +125,25 @@ a {
 
 #earthquake-list h3 {
   margin: 0.1em;
+}
+
+.tooltip {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.8em;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.tooltip.visible {
+  opacity: 1;
+}
+
+ /*Додайте стиль для маркерів землетрусів*/
+.earthquake-marker {
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
 }

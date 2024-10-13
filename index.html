@@ -6,40 +6,30 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="https://js.arcgis.com/4.22/esri/themes/light/main.css" />
-    <script src="https://js.arcgis.com/4.22/"></script>
     <link rel="stylesheet" href="./style.css" />
-    <script src="./main.js" defer></script>
+    <script src="papaparse.js"></script>
+    <script src="https://js.arcgis.com/4.22/"></script>
   </head>
   <body>
     <div id="view-container"></div>
     <h1 class="title">Major earthquakes in 2023</h1>
     <div id="details">
-      <div id="legend">
-        In 2023, there were earthquakes with magnitude higher or equal to 4. In this visualization, small yellow
-        spheres (
-        <div class="small-circle"></div>
-        ) are earthquakes with magnitudes between 4 and 6. Large red spheres (
-        <div class="big-circle"></div>
-        ) are earthquakes with a magnitude higher than 7. In between, the color and size of spheres are interpolated.
-        Earthquake depth is exaggerated by a factor of 6. The orange lines (
-        <div class="orange-line"></div>
-        ) represent the boundaries of the tectonic plates. Earthquake data from
-        <a href="https://earthquake.usgs.gov/earthquakes/search/">USGS</a>.
-        <a href="https://www.arcgis.com/home/item.html?id=2b93b06dc0dc4e809d3c8db5cb96ba69"
-          >Country borders feature service</a
-        >
-        is made available by the <a href="https://livingatlas.arcgis.com/en/">Living Atlas</a>. Visualization created
-        with <a href="https://developers.arcgis.com/javascript">Esri's ArcGIS API for JavaScript</a>.
+      <!-- Зменшимо кількість елементів у легенді -->
+      <div id="legend" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 5px;">
+        <h3>Легенда</h3>
+        <div><span style="color: yellow;">●</span> Магнітуда < 3</div>
+        <div><span style="color: orange;">●</span> Магнітуда 3-5</div>
+        <div><span style="color: orangered;">●</span> Магнітуда 5-7</div>
+        <div><span style="color: red;">●</span> Магнітуда > 7</div>
+        <div>Прозорість вказує на глибину</div>
       </div>
-      <button id="legend-control">Hide explanation</button>
-      <p>
-        <button id="toggle-exaggeration">
-          Toggle exaggeration
-        </button>
-        to visualize the actual depth and the exaggerated depth. The list below displays the earthquakes with magnitude
-        higher than 7 in chronological order.
-      </p>
+      <button id="legend-control">Toggle explanation</button>
+      <button id="toggleView" style="position: absolute; top: 10px; left: 10px; z-index: 1000;">Змінити вид</button>
       <div id="earthquake-list"></div>
+      <div id="loading" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(0,0,0,0.7); color: white; padding: 20px; border-radius: 10px;">
+        Завантаження даних...
+      </div>
     </div>
+    <script src="./main.js" defer></script>
   </body>
 </html>
