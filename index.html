@@ -11,24 +11,29 @@
     <script src="https://js.arcgis.com/4.22/"></script>
   </head>
   <body>
+    <h1 class="title">Earthquakes in 2023</h1>
     <div id="view-container"></div>
-    <h1 class="title">Major earthquakes in 2023</h1>
-    <div id="details">
-      <!-- Зменшимо кількість елементів у легенді -->
-      <div id="legend" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 5px;">
-        <h3>Легенда</h3>
-        <div><span style="color: yellow;">●</span> Магнітуда < 3</div>
-        <div><span style="color: orange;">●</span> Магнітуда 3-5</div>
-        <div><span style="color: orangered;">●</span> Магнітуда 5-7</div>
-        <div><span style="color: red;">●</span> Магнітуда > 7</div>
-        <div>Прозорість вказує на глибину</div>
-      </div>
-      <button id="legend-control">Toggle explanation</button>
-      <button id="toggleView" style="position: absolute; top: 10px; left: 10px; z-index: 1000;">Змінити вид</button>
-      <div id="earthquake-list"></div>
-      <div id="loading" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(0,0,0,0.7); color: white; padding: 20px; border-radius: 10px;">
-        Завантаження даних...
-      </div>
+    <div id="controls">
+      <button id="toggleView">Change View</button>
+      <select id="basemapSelect">
+        <option value="satellite">Satellite</option>
+        <option value="hybrid">Hybrid</option>
+        <option value="topo-vector">Topographic</option>
+        <option value="streets-vector">Streets</option>
+        <option value="dark-gray-vector">Dark Gray</option>
+        <option value="osm">OpenStreetMap</option>
+      </select>
+    </div>
+    <div id="legend">
+      <h3>Legend</h3>
+      <div><span style="color: yellow;">●</span> Magnitude < 3</div>
+      <div><span style="color: orange;">●</span> Magnitude 3-5</div>
+      <div><span style="color: orangered;">●</span> Magnitude 5-7</div>
+      <div><span style="color: red;">●</span> Magnitude > 7</div>
+      <div>Color indicates magnitude</div>
+    </div>
+    <div id="loading" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(0,0,0,0.7); color: white; padding: 20px; border-radius: 10px;">
+      Loading data...
     </div>
     <script src="./main.js" defer></script>
   </body>

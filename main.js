@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const map = new Map({
             basemap: "satellite",
             ground: {
-                opacity: 0.5 // Зменшено прозорість поверхні
+                opacity: 0.3  // Встановлюємо початкову прозорість ground на 0.3
             }
         });
 
@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 },
                 lighting: {
                     type: "virtual",
-                    date: new Date(),
+                    date: null,  // Встановлюємо null для рівномірного освітлення
                     directShadowsEnabled: false
                 }
             },
@@ -74,11 +74,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
             if (!lat || !lon || !depth || !magnitude) return;
 
+            // Радіус Землі в метрах
+            const earthRadius = 6371000;
+
             const point = {
                 type: "point",
                 longitude: lon,
                 latitude: lat,
-                z: -depth * 1000 // Конвертуємо глибину в метри і робимо її від'ємною
+                z: -(depth * 1000) // Конвертуємо глибину з км в метри і робимо від'ємною
             };
 
             const size = Math.max(50000, magnitude * 50000) / Math.sqrt(view.scale / 20000000);
@@ -172,6 +175,8 @@ document.addEventListener("DOMContentLoaded", function() {
                         material: { color: magnitudeColor(magnitude) }
                     }]
                 };
+                // Оновлюємо позицію по Z для збереження правильної глибини
+                graphic.geometry.z = -(depth * 1000);
             });
         }
 
@@ -203,5 +208,19 @@ document.addEventListener("DOMContentLoaded", function() {
                 }, { duration: 1000 });
             }
         });
+
+        // Функція для зміни basemap
+        function changeBasemap(basemap) {
+            map.basemap = basemap;
+            map.ground.opacity = 0.3;  // Встановлюємо прозорість ground на 0.3
+        }
+
+        // Додаємо обробник події для випадаючого списку
+        document.getElementById('basemapSelect').addEventListener('change', function(e) {
+            changeBasemap(e.target.value);
+        });
+
+        // Додайте цей код після створення view, щоб встановити початкове значення випадаючого списку
+        document.getElementById('basemapSelect').value = "satellite";
     });
 });
